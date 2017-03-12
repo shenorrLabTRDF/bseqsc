@@ -1,0 +1,46 @@
+Package: bseqsc
+Type: Package
+Title: Deconvolution of Bulk Sequencing Experiments using Single Cell Data
+Version: 1.0
+Date: 2016-01-06
+Author: Renaud Gaujoux, Maayan Baron
+Authors@R: c( person("Renaud", "Gaujoux", role=c('aut', 'cre'), email='renaud@tx.technion.ac.il'), 
+    person("Maayan", "Baron", role = "aut", email = 'maayan@technion.ac.il')) 
+Maintainer: Renaud Gaujoux <renaud@tx.technion.ac.il>
+Description: Companion package to:
+  A single-cell transcriptomic map of the human and mouse pancreas reveals 
+  inter- and intra-cell population structure. Baron et al. Cell Systems (2016)
+  https://www.ncbi.nlm.nih.gov/pubmed/27667365
+License: GPL (>= 2)
+LazyData: true
+Depends: R (>= 3.3.2), csSAM (>= 1.4)
+Imports:
+	Biobase, 
+	plyr, 
+	abind, 
+	pkgmaker, 
+	stringr, 
+	openxlsx, 
+	xbioc,
+	rngtools, 
+	ggplot2,
+	dplyr,
+	scales, 
+	AnnotationDbi, 
+	NMF,
+	e1071,
+	parallel,
+	preprocessCore,
+	edgeR
+Suggests: 
+	BiocStyle, 
+	knitr, 
+	rmarkdown
+Remotes:
+	renozao/xbioc,
+	shenorrlab/csSAM
+VignetteBuilder: knitr
+biocViews: SingleCell 
+RoxygenNote: 6.0.0.9000
+Roxygen: list(markdown = TRUE, roclets = c('collate', 'namespace', 'roclets::rd2_roclet'))
+

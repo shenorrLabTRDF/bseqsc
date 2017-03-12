@@ -1,0 +1,46 @@
+---
+title: Installation
+output:
+  pkgdown:
+    toc: FALSE
+---
+
+`BSeq-sc` is implemented as an
+R package, `r BiocStyle::Githubpkg('shenorrlab', 'bseqsc')`, which can be
+installed from GitHub by:
+  
+```{r, eval = FALSE}
+# install devtools if necessary
+install.packages('devtools')
+
+# install bseqsc
+devtools::install_github('shenorrlab/bseq-sc')
+
+# load
+library(bseqsc)
+```
+
+## External dependency
+
+`BSeq-sc` uses `CIBERSORT` to estimate cell type proportions, based on
+reference expression profiles.
+ 
+Due to licensing requirements, source code for this algorithm needs to be
+downloaded separately from its website http://cibersort.stanford.edu.
+It is released under the [Stanford Non-Commercial
+License](CIBERSORT_license.txt).
+
+In order to use it with `bseqsc` you will need to:
+
+  1. Got to http://cibersort.stanford.edu
+  2. Register and log in
+  3. Download the latest R source code from the [Download
+     section](http://cibersort.stanford.edu/download.php). 
+  4. Configure `bseqsc` by pointing it to the downloaded file. This is
+     done using the function `bseqsc_config`, which will copy the given R
+     source file into the `R-data/bseqsc` sub-directory in the user's home
+     directory for subsequent usage:
+  
+```{r, eval = FALSE}
+bseqsc_config('path/to/downloaded/source/CIBERSORT.R')
+```

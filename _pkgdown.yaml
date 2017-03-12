@@ -1,0 +1,13 @@
+navbar:
+  title: "BSEQ-sc"
+  type: inverse
+  left:
+    - text: "Tutorial"
+      href: vignettes/bseq-sc.html
+    - text: "Documentation"
+      href: "reference/index.html"
+    - dir: vignettes/pages
+      output: articles/pages
+  right:
+    - icon: fa-github
+      href: https://github.com/shenorrlab/bseq-sc

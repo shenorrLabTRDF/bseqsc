@@ -1,0 +1,11 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+vignettes/pages/
+vignettes/CIBERSORT_license.txt
+.*_cache/
+.*_files/
+docs/
+notes/
+_.*
+index.md
+sandbox/

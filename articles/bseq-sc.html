@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+
+<title>BSEQ-sc: Deconvolution of Bulk Sequencing Experiments using Single Cell Data</title>
+
+<link href="bseq-sc_files/highlightjs-1.1/default.css" rel="stylesheet" />
+<script src="bseq-sc_files/highlightjs-1.1/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+<link rel="stylesheet" href="/home/renaud/R/x86_64-pc-linux-gnu-library/3.3/BiocStyle/resources/html/bioconductor.css" type="text/css" />
+
+<script type="text/javascript">
+document.addEventListener("DOMContentLoaded", function() {
+  var links = document.links;  
+  for (var i = 0, linksLength = links.length; i < linksLength; i++)
+    if(links[i].hostname != window.location.hostname)
+      links[i].target = '_blank';
+});
+</script>
+
+</head>
+
+<body>
+
+
+<div id="header">
+<h1 class="title">BSEQ-sc: Deconvolution of Bulk Sequencing Experiments using Single Cell Data</h1>
+<h4 class="author"><em>Renaud Gaujoux</em></h4>
+<address class="author_afil">
+Systems Immunology Lab, Technion, Haifa, Israel<br><h4 class="author"><em>Maayan Baron</em></h4>
+<address class="author_afil">
+Technion<br><h4 class="abstract">Abstract</h4>
+<p>This vignette provides a walk through tutorial on how to use Bseq-sc to estimate cell type proportions from bulk sequencing data based on prior single cell data, and integrate them into a cell type-specific differential analysis. It serves as a companion document to the analysis performed in the original publication (Baron et al. 2016 – Cell Systems).</p>
+</div>
+<h4 class="package">Package version: <span style="font-weight: normal">bseqsc</span></h4>
+
+<h1>Contents</h1>
+<div id="TOC">
+<ul>
+<li><a href="#how-to-cite-r-bseqsc"><span class="toc-section-number">0.1</span> How to cite <code class="unnumbered">r BSEQSC</code></a></li>
+<li><a href="#requirements"><span class="toc-section-number">1</span> Requirements</a><ul>
+<li><a href="#software"><span class="toc-section-number">1.1</span> Software</a></li>
+<li><a href="#data"><span class="toc-section-number">1.2</span> Data</a></li>
+</ul></li>
+<li><a href="#bseq-sc-analysis-pipeline"><span class="toc-section-number">2</span> BSEQ-sc analysis pipeline</a></li>
+<li><a href="#sample-analysis"><span class="toc-section-number">3</span> Sample analysis</a><ul>
+<li><a href="#data-preparation"><span class="toc-section-number">3.1</span> Data preparation</a><ul>
+<li><a href="#bulk-data"><span class="toc-section-number">3.1.1</span> Bulk data</a></li>
+<li><a href="#single-cell-data"><span class="toc-section-number">3.1.2</span> Single cell data</a></li>
+</ul></li>
+<li><a href="#estimation-of-cell-type-proportions"><span class="toc-section-number">3.2</span> Estimation of cell type proportions</a><ul>
+<li><a href="#building-the-reference-basis-matrix"><span class="toc-section-number">3.2.1</span> Building the reference basis matrix</a></li>
+<li><a href="#estimating-proportions"><span class="toc-section-number">3.2.2</span> Estimating proportions</a></li>
+</ul></li>
+<li><a href="#gene-expression-differences-adjusted-for-proportions"><span class="toc-section-number">3.3</span> Gene expression differences adjusted for proportions</a></li>
+<li><a href="#cell-type-specific-differential-expression"><span class="toc-section-number">3.4</span> Cell type-specific differential expression</a></li>
+</ul></li>
+<li><a href="#session-info"><span class="toc-section-number">4</span> Session Info</a></li>
+<li><a href="#references">References</a></li>
+</ul>
+</div>
+
+<div id="how-to-cite-r-bseqsc" class="section level2">
+<h2><span class="header-section-number">0.1</span> How to cite <code class="unnumbered">r BSEQSC</code></h2>
+<p>When using this work in any way, please cite the following work:</p>
+<blockquote>
+<p><em>A single-cell transcriptomic map of the human and mouse pancreas reveals inter- and intra-cell population structure</em><br /> <small>M. Baron, A. Veres, S.L. Wolock, A. L. Faust, R. Gaujoux, A. Vetere, J. Hyoje Ryu, B. K. Wagner, S. Shen-Orr, A. M. Klein, D. A. Melton, I. Yanai<br /></small> Cell Systems. 2016 Oct 26 <a href="https://www.ncbi.nlm.nih.gov/pubmed/27667365">10.1016/j.cels.2016.08.011</a></p>
+</blockquote>
+</div>
+<div id="requirements" class="section level1">
+<h1><span class="header-section-number">1</span> Requirements</h1>
+<div id="software" class="section level2">
+<h2><span class="header-section-number">1.1</span> Software</h2>
+<p>In order to run the entire deconvolution pipeline, users need to install the <em><a href="https://github.com/shenorrlab/bseq-sc">bseqsc</a></em> R package from GitHub. See the <a href="installation.html">installtion instructions</a> for details.</p>
+</div>
+<div id="data" class="section level2">
+<h2><span class="header-section-number">1.2</span> Data</h2>
+<p>BSEQ-sc uses two types of input data:</p>
+<ul>
+<li>bulk data obtained from RNA sequencing of mixed tissue samples: these are the data we want to deconvolve;</li>
+<li>data from single cell RNA sequencing: these serve to compute cell type-specific reference profiles that are used to estimate cell type proportions in the bulk data.</li>
+</ul>
+<hr />
+</div>
+</div>
+<div id="bseq-sc-analysis-pipeline" class="section level1">
+<h1><span class="header-section-number">2</span> BSEQ-sc analysis pipeline</h1>
+<p>Single cell RNA-seq information is used to deconvolve bulk RNA-seq samples by estimating the cell-type proportion of key cell-types. Statistical deconvolution is then used to leverage the variation in cell type frequencies between individuals to estimate average cell-type specific expression in 2 groups of individuals and to compute cell type-specific differential expression.</p>
+<p>We used this approach to investigate gene expression differences between diabetics and healthy individuals, using single cell RNA-seq data obtained from an independent set of pancreatic islets (Figure 1). However, it is applicable to other type of tissue, for which both bulk and single cell gene expression data are available.</p>
+<div class="figure">
+<img src="images/pipeline-800x600.png" />
+
+</div>
+<hr />
+</div>
+<div id="sample-analysis" class="section level1">
+<h1><span class="header-section-number">3</span> Sample analysis</h1>
+<p>We reproduce here the analysis detailed in <span class="citation">(Baron et al. 2016)</span>.</p>
+<ul>
+<li>Total gene expression data were obtained from GEO dataset <a href="http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE50244">GSE50244</a>, which contains data on gobal transcriptomic analysis of bulk human pancreatic islets to study glucose metabolism in healthy and hyper-glycemic conditions <span class="citation">(Fadista et al. 2014)</span>.</li>
+<li>Single cell RNA-seq data were generated by us from pancreatic islets from an independent set of 3 healthy indiviuals.</li>
+</ul>
+<div id="data-preparation" class="section level2">
+<h2><span class="header-section-number">3.1</span> Data preparation</h2>
+<p>Bioconductor base package provides the <code>ExpressionSet</code> class, which is a convenient data structure to hold expression data along with sample/feature annotation. Here we use two <code>ExpressionSet</code> objects to handle the bulk and single cell data respectively.</p>
+<div id="bulk-data" class="section level3">
+<h3><span class="header-section-number">3.1.1</span> Bulk data</h3>
+<p>The dataset’s <a href="http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE50244">GEO entry (GSE50244)</a> contains raw RNA-seq and sample annotation data. For the purpose of this vignette, we will use data that we pre-processed and made available on the <a href="http://shenorrlab.github.io/BSeq-sc/data">data download page</a>.</p>
+<p>After pre-processing, the data were filtered to remove unmapped tags, or tags that mapped to pseudogenes, or known ribosomal/mithocondrial genes (list available in file <code>data/genes_mitrib.txt.gz</code> or via function <code>getMITRIB()</code> provided in the package). Moreover, counts from transcripts that mapped to a same gene were averaged. Sample phenotypic annotations were also processed to define glycemic groups based on <em>hba1c</em> measurements, as per the original publication <span class="citation">(Fadista et al. 2014)</span>.</p>
+<pre class="r"><code># download GEO dataset from Github
+eset &lt;- readRDS(&#39;http://shenorrlab.github.io/BSeq-sc/data/GSE50244.rds&#39;)</code></pre>
+<pre class="r"><code># for this analysis we only look at samples with hba1c data
+eset &lt;- droplevels(eset[, !is.na(eset$hba1c)])
+eset</code></pre>
+<pre><code>## ExpressionSet (storageMode: lockedEnvironment)
+## assayData: 17921 features, 70 samples 
+##   element names: exprs 
+## protocolData: none
+## phenoData
+##   sampleNames: GSM1216753 GSM1216755 ... GSM1216834 (70 total)
+##   varLabels: geo_accession tissue ... ageN (11 total)
+##   varMetadata: labelDescription
+## featureData
+##   featureNames: A1BG A1CF ... ZAK (17921 total)
+##   fvarLabels: Gene0 ENTREZID Symbol Description
+##   fvarMetadata: labelDescription
+## experimentData: use &#39;experimentData(object)&#39;
+## Annotation:</code></pre>
+</div>
+<div id="single-cell-data" class="section level3">
+<h3><span class="header-section-number">3.1.2</span> Single cell data</h3>
+<p>We generated single cell RNA-seq data of pancreatic islets from 3 healthy individuals, which provided gene expression profiles for 17434 genes in 7729 cells. The raw counts for these data are available on the <a href="http://shenorrlab.github.io/BSeq-sc/data">data download page</a>, in the form of an <code>ExpressionSet</code>:</p>
+<pre class="r"><code>eislet &lt;- readRDS(&#39;http://shenorrlab.github.io/BSeq-sc/data/islet-eset.rds&#39;)
+eislet</code></pre>
+<p>After identification of the cell types by clustering, we extract marker genes for each cell type, i.e. sets of genes that are mostly highly expressed in each cell type, which can be done in multiple ways, see for example details in <span class="citation">(Baron et al. 2016)</span>.</p>
+<p>The bseqsc package provides the list of selected marker genes for the pancreatic islets, stored in data object <code>pancreasMarkers</code>:</p>
+<pre class="r"><code>data(pancreasMarkers)
+str(pancreasMarkers)</code></pre>
+<pre><code>## List of 6
+##  $ alpha : chr [1:14] &quot;GCG&quot; &quot;TTR&quot; &quot;IRX2&quot; &quot;SLC7A2&quot; ...
+##  $ beta  : chr [1:7] &quot;INS&quot; &quot;IAPP&quot; &quot;IGF2&quot; &quot;DLK1&quot; ...
+##  $ delta : chr [1:5] &quot;SST&quot; &quot;LEPR&quot; &quot;RBP4&quot; &quot;RGS2&quot; ...
+##  $ gamma : chr [1:6] &quot;PPY&quot; &quot;STMN2&quot; &quot;ARX&quot; &quot;MEIS2&quot; ...
+##  $ ductal: chr [1:11] &quot;KRT19&quot; &quot;TACSTD2&quot; &quot;ANXA2&quot; &quot;S100A10&quot; ...
+##  $ acinar: chr [1:19] &quot;CTRB1&quot; &quot;CELA3A&quot; &quot;CELA3B&quot; &quot;CTRB2&quot; ...</code></pre>
+<hr />
+</div>
+</div>
+<div id="estimation-of-cell-type-proportions" class="section level2">
+<h2><span class="header-section-number">3.2</span> Estimation of cell type proportions</h2>
+<p>Once cell type-specific markers have been identified, we build a reference basis matrix from their single cell gene expression, which we use to infer the composition of bulk tissue samples from their total gene expression.</p>
+<div id="building-the-reference-basis-matrix" class="section level3">
+<h3><span class="header-section-number">3.2.1</span> Building the reference basis matrix</h3>
+<p>The purpose of this matrix is to provide reference expression profiles that together discriminate the cell types of interest. We compute it by averaging, within each cell type, the gene expression of each marker gene across all the cells in the cell type.</p>
+<p>Notably, the computation is performed on scaled single cell count data, to better reflect cell type-specific variations in average transcript counts. Indeed, looking at the average counts within each cell type shows how cell types have varying levels of RNA transcripts:</p>
+<pre class="r"><code># average counts computed within each cell type in each sample
+plotCellTotals(eislet, &#39;cellType&#39;, &#39;sampleID&#39;)</code></pre>
+<p><img src="bseq-sc_files/figure-html/cell_totals-1.png" width="800px" /></p>
+<p>Because we want the basis matrix of reference profiles to reflect these biological differences, we use these average counts to re-scale the CPM data before computing the average gene expression.</p>
+<pre class="r"><code>B &lt;- bseqsc_basis(eislet, pancreasMarkers, clusters = &#39;cellType&#39;, samples = &#39;sampleID&#39;, ct.scale = TRUE)</code></pre>
+<p>The resulting basis matrix should show a clear cell type-specific expression pattern (Figure 2):</p>
+<pre class="r"><code>plotBasis(B, pancreasMarkers, Colv = NA, Rowv = NA, layout = &#39;_&#39;, col = &#39;Blues&#39;)</code></pre>
+<div class="figure">
+<img src="bseq-sc_files/figure-html/basis_heatmap-1.png" alt="**Figure 2:** Basis matrix of gene expression reference profiles from pancreatic cell type derived from single cell RNA-seq data." width="800px" />
+<p class="caption">
+<strong>Figure 2:</strong> Basis matrix of gene expression reference profiles from pancreatic cell type derived from single cell RNA-seq data.
+</p>
+</div>
+</div>
+<div id="estimating-proportions" class="section level3">
+<h3><span class="header-section-number">3.2.2</span> Estimating proportions</h3>
+<p>Cell type proportions are estimated using CIBERSORT, a method that was developed to investigate immune infiltrating landscape in tumour tissue <span class="citation">(Newman et al. 2015; Gentles et al. 2015)</span> (See section Requirements for setup instructions).</p>
+<pre class="r"><code>fit &lt;- bseqsc_proportions(eset, B, verbose = TRUE)
+## * Data features: &#39;A1BG&#39;, &#39;A1CF&#39;, ..., &#39;ZAK&#39; (17,921 total)
+## * Basis features: &#39;GCG&#39;, &#39;TTR&#39;, ..., &#39;CPB1&#39; (62 total)
+## * Common features: &#39;ADCYAP1&#39;, &#39;ANXA2&#39;, ..., &#39;TTR&#39; (60 total)
+## * Writing input files ...
+## OK
+## * Running CIBERSORT ...
+## OK</code></pre>
+<p>To facilitate plotting and model fitting in downstream analysis, we add the estimated proportions as extra phenotypic variables to the <code>ExpressionSet</code>:</p>
+<pre class="r"><code>pData(eset) &lt;- cbind(pData(eset), t(coef(fit)))</code></pre>
+Estimated proportions can then be compared between the two HBA1C groups, within each cell type (Figure 3).
+<div class="figure">
+<img src="bseq-sc_files/figure-html/prop_plot-1.png" alt="**Figure 3:** Estimated cell type proportions in each Normoglycemic (blue) and hyperglycemic (red) individuals." width="800px" />
+<p class="caption">
+<strong>Figure 3:</strong> Estimated cell type proportions in each Normoglycemic (blue) and hyperglycemic (red) individuals.
+</p>
+</div>
+<hr />
+</div>
+</div>
+<div id="gene-expression-differences-adjusted-for-proportions" class="section level2">
+<h2><span class="header-section-number">3.3</span> Gene expression differences adjusted for proportions</h2>
+<p>Now that we have estimates for the main cell types, we can use <em><a href="http://bioconductor.org/packages/EdgeR">EdgeR</a></em> to derive a set of genes that are likely to be differentially regulated at the cell type level.</p>
+<p>To do so, we fit 2 models of gene expression differences between HBA1C groups (IGT, Diabetic, Normal): * a base model only includes the HBA1C group variable, as well as gender and age covariates; * an extended model that additionally includes the proportions of alpha, beta, ductal and acinar cells.</p>
+<p>Genes that are likely to be differentially regulated at the cell type level are those whose p-values improve (i.e. decrease) when adjusting for cell type proportions (red dots on Figure 4). Here we used a p-value threshold of 0.01.</p>
+<p>To fit these models we use the utility function <code>fitEdgeR</code> included in the package:</p>
+<pre class="r"><code>fitEdgeR</code></pre>
+<pre><code>## function (x, formula, coef) 
+## {
+##     library(edgeR)
+##     design &lt;- model.matrix(formula, data = pData(x))
+##     esetA &lt;- x[, rownames(design)]
+##     y &lt;- DGEList(counts = exprs(esetA), genes = fData(esetA))
+##     y &lt;- calcNormFactors(y)
+##     y &lt;- estimateDisp(y, design)
+##     fit &lt;- glmQLFit(y, design)
+##     qlf &lt;- glmQLFTest(fit, coef = coef)
+##     top &lt;- topTags(qlf, n = Inf)
+##     top$fit &lt;- fit
+##     top
+## }
+## &lt;environment: namespace:bseqsc&gt;</code></pre>
+<pre class="r"><code># base
+fit_edger &lt;- fitEdgeR(eset, ~ gender + ageN + hba1c_class, coef = c(&#39;hba1c_classIGT&#39;, &#39;hba1c_classDiabetic&#39;))</code></pre>
+<pre><code>## Loading required package: limma</code></pre>
+<pre><code>## 
+## Attaching package: &#39;limma&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:BiocGenerics&#39;:
+## 
+##     plotMA</code></pre>
+<pre class="r"><code># extended
+fit_edger_ext &lt;- fitEdgeR(eset, ~ gender + ageN + alpha + beta + ductal + acinar + hba1c_class
+                          , coef = c(&#39;hba1c_classIGT&#39;, &#39;hba1c_classDiabetic&#39;))</code></pre>
+<p>We then visualize</p>
+<pre class="r"><code># gather P-values from both models
+edger_pvals &lt;- cbind(fit_edger$table[, &#39;Symbol&#39;, drop = FALSE], Base = fit_edger$table$PValue
+               , Adjusted = fit_edger_ext$table$PValue[match(fit_edger$table$Symbol, fit_edger_ext$table$Symbol)]
+               , stringsAsFactors = FALSE)
+
+edger_pvals &lt;- mutate(edger_pvals, Regulated = Adjusted &lt;= 0.01 &amp; Adjusted &lt;= Base)
+
+# plot Base vs Adjusted
+pvalueScatter(Base ~ Adjusted, edger_pvals, pval.th = 0.01, label.th = 3.5)</code></pre>
+<div class="figure">
+<img src="bseq-sc_files/figure-html/edgeR_agg-1.png" alt="**Figure 4:** P-values comparison between the 2 EdgeR modesl: Base model (y-axis) and extended model (x-axis)." width="800px" />
+<p class="caption">
+<strong>Figure 4:</strong> P-values comparison between the 2 EdgeR modesl: Base model (y-axis) and extended model (x-axis).
+</p>
+</div>
+<hr />
+</div>
+<div id="cell-type-specific-differential-expression" class="section level2">
+<h2><span class="header-section-number">3.4</span> Cell type-specific differential expression</h2>
+<p>Now, we run a cell type-specific differential analysis using <code>csSAM</code> <span class="citation">(S. S. Shen-Orr et al. 2010)</span>, on the subset of selected genes, to which we add a set of 6 ER stress-related genes, that were identified in the single cell data analysis (see details in <span class="citation">(Baron et al. 2016)</span>).</p>
+<p><code>csSAM</code> fits a linear model that estimates interaction terms between cell proportions and a group variable. This imposes a constraint on the sample size within each group. For this reason we only inlude into the model the 4 cell types (alpha, beta, ductal and acinar cells), either due to their variation (Figure 3) or biological relevance.</p>
+<pre class="r"><code># ER genes
+genes_ER &lt;- c(&#39;HSPA5&#39;, &#39;MAFA&#39;, &#39;HERPUD1&#39;, &#39;DDIT3&#39;, &#39;UCN3&#39;, &#39;NEUROD1&#39;)
+# Fit on ER stress genes and genes regulated beyond cell type proportion differences
+genes &lt;- union(genes_ER, subset(edger_pvals, Regulated)$Symbol)
+# NB: we fix seed for reproducibility
+csfit &lt;- bseqsc_csdiff(eset[genes, ] ~ gender + ageN + hba1c_class2 | alpha + beta + ductal + acinar,  verbose = 2, nperms = 5000, .rng = 12345)</code></pre>
+<pre><code>## Groups: Normal=47L | Hyper=23L | NA0L
+## Cell type(s): &#39;alpha&#39;, &#39;beta&#39;, ..., &#39;acinar&#39; (4 total)
+## Fitting mode: auto
+## Data (filtered): 254 features x 70 samples
+## Model has extra covariates: fitting lm interaction model
+## Fitting model with nonnegative effects
+##  Fitting linear interaction model ...  OK
+##  Computing FDR using 5000 permutations ... 5001/5000
+##   Alternative &#39;two.sided&#39; ...   OK
+##   Alternative &#39;greater&#39; ...   OK
+##   Alternative &#39;less&#39; ...   OK
+##  OK
+## Timing:
+##    user  system elapsed 
+##  44.992  86.796  39.100</code></pre>
+<p>We observe a strong signal for up-regulation on beta cells (at FDR 0.05), and milder signals of up and down-regulation on acinar and beta cells respectively (at looser FDR 0.25).</p>
+<pre class="r"><code>p &lt;- plot(csfit, alt = c(&#39;great&#39;, &#39;less&#39;), by = &#39;alt&#39;, xlab = &#39;Number of significant genes&#39;, ylab = &#39;FDR cutoff&#39;)
+p$data$Cell.type &lt;- gsub(&quot;:Hyper&quot;, &quot;&quot;, p$data$Cell.type)
+p$data$Alternative &lt;- c(&#39;greater&#39; = &#39;Up-regulated&#39;, less = &#39;Down-regulated&#39;)[as.character(p$data$Alternative)]
+p + theme_get()</code></pre>
+<p><img src="bseq-sc_files/figure-html/fdrPlot-1.png" width="800px" /></p>
+<p>We filter these results for genes with the strongest signal in alpha, beta and acinar cells:</p>
+<pre class="r"><code>cst &lt;- csTopTable(csfit, threshold = c(alpha = 0.05, beta = 0.25, acinar = 0.25), alt = &#39;min&#39;, merge = TRUE, n = Inf, nodups = TRUE)
+plotEffectSize(cst)</code></pre>
+<p><img src="bseq-sc_files/figure-html/csfilter-1.png" width="800px" /></p>
+</div>
+</div>
+<div id="session-info" class="section level1">
+<h1><span class="header-section-number">4</span> Session Info</h1>
+<pre><code>## R version 3.3.3 (2017-03-06)
+## Platform: x86_64-pc-linux-gnu (64-bit)
+## Running under: Ubuntu 16.04.2 LTS
+## 
+## locale:
+##  [1] LC_CTYPE=en_ZA.UTF-8       LC_NUMERIC=C              
+##  [3] LC_TIME=en_ZA.UTF-8        LC_COLLATE=en_ZA.UTF-8    
+##  [5] LC_MONETARY=en_ZA.UTF-8    LC_MESSAGES=en_ZA.UTF-8   
+##  [7] LC_PAPER=en_ZA.UTF-8       LC_NAME=C                 
+##  [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+## [11] LC_MEASUREMENT=en_ZA.UTF-8 LC_IDENTIFICATION=C       
+## 
+## attached base packages:
+## [1] parallel  stats     graphics  grDevices utils     datasets  methods  
+## [8] base     
+## 
+## other attached packages:
+##  [1] edgeR_3.16.5          limma_3.30.11         preprocessCore_1.36.0
+##  [4] e1071_1.6-8           RColorBrewer_1.1-2    plyr_1.8.4           
+##  [7] reshape2_1.4.2        ggplot2_2.2.1         bseqsc_1.0           
+## [10] synchronicity_1.1.9.1 bigmemory_4.5.19      bigmemory.sri_0.1.3  
+## [13] Biobase_2.34.0        BiocGenerics_0.20.0   csSAM_1.4            
+## [16] Rcpp_0.12.9           knitr_1.15.1          BiocStyle_2.2.1      
+## 
+## loaded via a namespace (and not attached):
+##  [1] viridis_0.3.4        splines_3.3.3        xbioc_0.1.8         
+##  [4] foreach_1.4.3        Formula_1.2-1        assertthat_0.1      
+##  [7] highr_0.6            stats4_3.3.3         yaml_2.1.14         
+## [10] robustbase_0.92-7    RSQLite_1.1-2        backports_1.0.5     
+## [13] lattice_0.20-34      digest_0.6.12        colorspace_1.3-2    
+## [16] htmltools_0.3.5      xtable_1.8-2         mvtnorm_1.0-6       
+## [19] scales_0.4.1         whisker_0.3-2        tibble_1.2          
+## [22] pkgmaker_0.26.5      IRanges_2.8.1        withr_1.0.2         
+## [25] nnet_7.3-12          lazyeval_0.2.0       magrittr_1.5        
+## [28] mclust_5.2.2         memoise_1.0.0        evaluate_0.10       
+## [31] doParallel_1.0.10    MASS_7.3-45          NMF_0.23.4          
+## [34] class_7.3-14         tools_3.3.3          registry_0.3        
+## [37] gridBase_0.4-7       trimcluster_0.1-2    stringr_1.2.0       
+## [40] S4Vectors_0.12.1     kernlab_0.9-25       locfit_1.5-9.1      
+## [43] munsell_0.4.3        cluster_2.0.5        rngtools_1.2.4      
+## [46] AnnotationDbi_1.36.2 fpc_2.1-10           grid_3.3.3          
+## [49] iterators_1.0.8      labeling_0.3         rmarkdown_1.3.9004  
+## [52] gtable_0.2.0         codetools_0.2-15     flexmix_2.3-13      
+## [55] DBI_0.6              R6_2.2.0             gridExtra_2.2.1     
+## [58] prabclus_2.2-6       dplyr_0.5.0          rprojroot_1.2       
+## [61] dendextend_1.4.0     modeltools_0.2-21    stringi_1.1.2       
+## [64] DEoptimR_1.0-8       diptest_0.75-7</code></pre>
+</div>
+<div id="references" class="section level1 unnumbered">
+<h1>References</h1>
+<div id="refs" class="references">
+<div id="ref-Baron2016">
+<p>Baron, Maayan, Adrian Veres, Samuel L. Wolock, Aubrey L. Faust, Renaud Gaujoux, Amedeo Vetere, Jennifer Hyoje Ryu, et al. 2016. “A Single-Cell Transcriptomic Map of the Human and Mouse Pancreas Reveals Inter- and Intra-cell Population Structure.” <em>Cell Systems</em> 3 (4). Elsevier Inc.: 346–60. doi:<a href="https://doi.org/10.1016/j.cels.2016.08.011">10.1016/j.cels.2016.08.011</a>.</p>
+</div>
+<div id="ref-Fadista2014">
+<p>Fadista, João, Petter Vikman, Emilia Ottosson Laakso, Inês Guerra Mollet, Jonathan Lou Esguerra, Jalal Taneera, Petter Storm, et al. 2014. “Global genomic and transcriptomic analysis of human pancreatic islets reveals novel genes influencing glucose metabolism.” <em>Proceedings of the National Academy of Sciences</em> 111 (38): 13924–9. doi:<a href="https://doi.org/10.1073/pnas.1402665111">10.1073/pnas.1402665111</a>.</p>
+</div>
+<div id="ref-Gentles2015">
+<p>Gentles, Andrew J, Aaron M Newman, Chih Long Liu, Scott V Bratman, Weiguo Feng, Dongkyoon Kim, Viswam S Nair, et al. 2015. “The prognostic landscape of genes and infiltrating immune cells across human cancers.” <em>Nature Medicine</em> 21 (8). Nature Publishing Group: 938–45. doi:<a href="https://doi.org/10.1038/nm.3909">10.1038/nm.3909</a>.</p>
+</div>
+<div id="ref-Newman2015">
+<p>Newman, Aaron M, Chih Long Liu, Michael R Green, Andrew J Gentles, Weiguo Feng, Yue Xu, Chuong D Hoang, Maximilian Diehn, and Ash a Alizadeh. 2015. “Robust enumeration of cell subsets from tissue expression profiles.” <em>Nature Methods</em>, no. MAY 2014. Nature Publishing Group: 1–10. doi:<a href="https://doi.org/10.1038/nmeth.3337">10.1038/nmeth.3337</a>.</p>
+</div>
+<div id="ref-Shen-Orr2010">
+<p>Shen-Orr, Shai S, Robert Tibshirani, Purvesh Khatri, Dale L Bodian, Frank Staedtler, Nicholas M Perry, Trevor Hastie, Minnie M Sarwal, Mark M Davis, and Atul J Butte. 2010. “Cell type-specific gene expression differences in complex tissues.” <em>Nature Methods</em> 7 (4). Nature Publishing Group: 287–9. doi:<a href="https://doi.org/10.1038/nmeth.1439">10.1038/nmeth.1439</a>.</p>
+</div>
+</div>
+</div>
+
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

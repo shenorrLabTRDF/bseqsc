@@ -28,7 +28,7 @@ library(bseqsc)
 
 ## More information
   
-  * [Detailed installation instructions](http://shenorrlab.github.io/beseq-sc/articles/pages/installation.html)
-  * [Sample analysis](http://shenorrlab.github.io/beseq-sc/vignettes/bseq-sc.html)
-  * [Documentation](http://shenorrlab.github.io/beseq-sc/reference/index.html)
+  * [Detailed installation instructions](http://shenorrlab.github.io/bseqsc/articles/pages/installation.html)
+  * [Sample analysis](http://shenorrlab.github.io/bseqsc/vignettes/bseq-sc.html)
+  * [Documentation](http://shenorrlab.github.io/bseqsc/reference/index.html)
 

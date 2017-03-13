@@ -3,7 +3,7 @@ title: "BSEQ-sc: Deconvolution of Bulk Sequencing Experiments using Single Cell 
 shorttitle: "BSEQ-sc: Deconvolution Using scRNA-seq"
 author: 
   - {name: Renaud Gaujoux, affiliation: "Systems Immunology Lab, Technion, Haifa, Israel"}
-  - {name: Maayan Baron, affiliation: Technion}
+  - {name: Maayan Baron, affiliation: "Institute for Computational Medicine, NYU School of Medicine, New York, USA"}
 output: 
   BiocStyle::html_document:
     self_contained: false

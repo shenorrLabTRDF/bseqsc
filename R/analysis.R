@@ -169,6 +169,7 @@ bseqsc_csdiff <- function(formula, data = NULL, ...){
 #' @importFrom edgeR DGEList calcNormFactors estimateDisp glmQLFit glmQLFTest topTags
 #' @export
 fitEdgeR <- function(x, formula, coef){
+  qlibrary('edgeR') # this is required for subsetting happening in glmQLFTest to work
   design <- model.matrix(formula, data = pData(x))
   esetA <- x[, rownames(design)]
   y <- DGEList(counts = exprs(esetA), genes = fData(esetA))

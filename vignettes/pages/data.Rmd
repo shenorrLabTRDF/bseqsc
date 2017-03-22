@@ -6,6 +6,6 @@ output:
 ---
 
   * [Processed RNA-seq data from bulk pancreatic islets in healthy and
-    hyperglycemic individuals (GSE50244)](../data/GSE50244.rds)
+    hyperglycemic individuals (GSE50244)](../../data/GSE50244.rds)
   * [Single cell RNA-seq data of pancreatic islets from healthy
-    individuals](../data/islet-eset.rds)
+    individuals](../../data/islet-eset.rds)

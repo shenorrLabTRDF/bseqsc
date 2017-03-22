@@ -14,7 +14,7 @@ installed from GitHub by:
 install.packages('devtools')
 
 # install bseqsc
-devtools::install_github('shenorrlab/bseq-sc')
+devtools::install_github('shenorrlab/bseqsc')
 
 # load
 library(bseqsc)

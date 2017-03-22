@@ -7,7 +7,7 @@ navbar:
     - text: "Documentation"
       href: "reference/index.html"
     - dir: vignettes/pages
-      output: articles/pages
+      output: vignettes/pages
   right:
     - icon: fa-github
       href: https://github.com/shenorrlab/bseq-sc

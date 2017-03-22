@@ -35,7 +35,7 @@ opts_chunk$set(dpi=300, dev="png")#, dev.args=list(pointsize=15))
 IS_PKGDOWN <- nzchar(Sys.getenv('_R_PKGDOWN_RENDER'))
 # packages
 library(BiocStyle)
-# pkgmaker::load_project(pancreas)
+# pkgmaker::load_project('pancreas/bseq-sc')
 library(bseqsc)
 library(ggplot2)
 library(reshape2)
@@ -70,7 +70,7 @@ When using this work in any way, please cite the following work:
 ## Software
 
 In order to run the entire deconvolution pipeline, users need to install the `r Githubpkg('shenorrlab/bseq-sc', 'bseqsc')` R package from GitHub.
-See the [installtion instructions](installation.html) for details.
+See the [installtion instructions](pages/installation.html) for details.
 
 ## Data
 `r BSEQSC` uses two types of input data:
@@ -109,7 +109,7 @@ Here we use two `ExpressionSet` objects to handle the bulk and single cell data 
 The dataset's [GEO entry (GSE50244)](http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE50244) contains raw RNA-seq and sample annotation data. 
 For the purpose of this vignette, we will use data that we pre-processed and
 made available on the [data
-download page](http://shenorrlab.github.io/BSeq-sc/data).
+download page](pages/data.html).
 
 After pre-processing, the data were filtered to remove unmapped tags, or tags that mapped to pseudogenes, or known ribosomal/mithocondrial genes (list available in file `data/genes_mitrib.txt.gz` or via function `getMITRIB()` provided in the package).
 Moreover, counts from transcripts that mapped to a same gene were averaged.
@@ -117,7 +117,7 @@ Sample phenotypic annotations were also processed to define glycemic groups base
 
 ```{r, eval = !local_data}
 # download GEO dataset from Github
-eset <- readRDS('http://shenorrlab.github.io/BSeq-sc/data/GSE50244.rds')
+eset <- readRDS('https://shenorrlab.github.io/bseqsc/data/GSE50244.rds')
 ```
 ```{r, eset}
 # for this analysis we only look at samples with hba1c data
@@ -128,10 +128,10 @@ eset
 ### Single cell data
 We generated single cell RNA-seq data of pancreatic islets from 3 healthy individuals, which provided gene expression profiles for 17434 genes in 7729 cells.
 The raw counts for these data are available on the [data download
-page](http://shenorrlab.github.io/BSeq-sc/data), in the form of an
+page](pages/data.html), in the form of an
 `ExpressionSet`: 
 ```{r islet_eset, eval = !local_data}
-eislet <- readRDS('http://shenorrlab.github.io/BSeq-sc/data/islet-eset.rds')
+eislet <- readRDS('https://shenorrlab.github.io/bseqsc/data/islet-eset.rds')
 eislet
 ```
 

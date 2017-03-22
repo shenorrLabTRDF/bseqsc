@@ -135,10 +135,10 @@
 <div id="bulk-data" class="section level3">
 <h3 class="hasAnchor">
 <html><body><a href="#bulk-data" class="anchor"> </a></body></html>Bulk data</h3>
-<p>The dataset’s <a href="http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE50244">GEO entry (GSE50244)</a> contains raw RNA-seq and sample annotation data. For the purpose of this vignette, we will use data that we pre-processed and made available on the <a href="http://shenorrlab.github.io/BSeq-sc/data">data download page</a>.</p>
+<p>The dataset’s <a href="http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE50244">GEO entry (GSE50244)</a> contains raw RNA-seq and sample annotation data. For the purpose of this vignette, we will use data that we pre-processed and made available on the <a href="http://shenorrlab.github.io/beqsc/data.html">data download page</a>.</p>
 <p>After pre-processing, the data were filtered to remove unmapped tags, or tags that mapped to pseudogenes, or known ribosomal/mithocondrial genes (list available in file <code>data/genes_mitrib.txt.gz</code> or via function <code><a href="../reference/getMITRIB.html">getMITRIB()</a></code> provided in the package). Moreover, counts from transcripts that mapped to a same gene were averaged. Sample phenotypic annotations were also processed to define glycemic groups based on <em>hba1c</em> measurements, as per the original publication <span class="citation">(Fadista et al. 2014)</span>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># download GEO dataset from Github</span>
-eset &lt;-<span class="st"> </span><span class="kw">readRDS</span>(<span class="st">'http://shenorrlab.github.io/BSeq-sc/data/GSE50244.rds'</span>)</code></pre></div>
+eset &lt;-<span class="st"> </span><span class="kw">readRDS</span>(<span class="st">'http://shenorrlab.github.io/bseqsc/data/GSE50244.rds'</span>)</code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># for this analysis we only look at samples with hba1c data</span>
 eset &lt;-<span class="st"> </span><span class="kw">droplevels</span>(eset[, !<span class="kw">is.na</span>(eset$hba1c)])
 eset</code></pre></div>
@@ -160,8 +160,8 @@ eset</code></pre></div>
 <div id="single-cell-data" class="section level3">
 <h3 class="hasAnchor">
 <html><body><a href="#single-cell-data" class="anchor"> </a></body></html>Single cell data</h3>
-<p>We generated single cell RNA-seq data of pancreatic islets from 3 healthy individuals, which provided gene expression profiles for 17434 genes in 7729 cells. The raw counts for these data are available on the <a href="http://shenorrlab.github.io/BSeq-sc/data">data download page</a>, in the form of an <code>ExpressionSet</code>:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">eislet &lt;-<span class="st"> </span><span class="kw">readRDS</span>(<span class="st">'http://shenorrlab.github.io/BSeq-sc/data/islet-eset.rds'</span>)
+<p>We generated single cell RNA-seq data of pancreatic islets from 3 healthy individuals, which provided gene expression profiles for 17434 genes in 7729 cells. The raw counts for these data are available on the <a href="http://shenorrlab.github.io/bseqsc/data.html">data download page</a>, in the form of an <code>ExpressionSet</code>:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">eislet &lt;-<span class="st"> </span><span class="kw">readRDS</span>(<span class="st">'http://shenorrlab.github.io/bseqsc/data/islet-eset.rds'</span>)
 eislet</code></pre></div>
 <p>After identification of the cell types by clustering, we extract marker genes for each cell type, i.e. sets of genes that are mostly highly expressed in each cell type, which can be done in multiple ways, see for example details in <span class="citation">(Baron et al. 2016)</span>.</p>
 <p>The bseqsc package provides the list of selected marker genes for the pancreatic islets, stored in data object <code>pancreasMarkers</code>:</p>

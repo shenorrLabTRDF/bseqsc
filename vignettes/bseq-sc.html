@@ -36,10 +36,10 @@
   <a href="../reference/index.html">Documentation</a>
 </li>
 <li>
-  <a href="../articles/pages/data.html">Data</a>
+  <a href="../vignettes/pages/data.html">Data</a>
 </li>
 <li>
-  <a href="../articles/pages/installation.html">Installation</a>
+  <a href="../vignettes/pages/installation.html">Installation</a>
 </li>
       </ul>
 <ul class="nav navbar-nav navbar-right">
@@ -97,7 +97,7 @@
 <div id="software" class="section level2">
 <h2 class="hasAnchor">
 <html><body><a href="#software" class="anchor"> </a></body></html>Software</h2>
-<p>In order to run the entire deconvolution pipeline, users need to install the <em><a href="https://github.com/shenorrlab/bseq-sc">bseqsc</a></em> R package from GitHub. See the <a href="installation.html">installtion instructions</a> for details.</p>
+<p>In order to run the entire deconvolution pipeline, users need to install the <em><a href="https://github.com/shenorrlab/bseq-sc">bseqsc</a></em> R package from GitHub. See the <a href="pages/installation.html">installtion instructions</a> for details.</p>
 </div>
 <div id="data" class="section level2">
 <h2 class="hasAnchor">
@@ -135,10 +135,10 @@
 <div id="bulk-data" class="section level3">
 <h3 class="hasAnchor">
 <html><body><a href="#bulk-data" class="anchor"> </a></body></html>Bulk data</h3>
-<p>The dataset’s <a href="http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE50244">GEO entry (GSE50244)</a> contains raw RNA-seq and sample annotation data. For the purpose of this vignette, we will use data that we pre-processed and made available on the <a href="http://shenorrlab.github.io/beqsc/data.html">data download page</a>.</p>
+<p>The dataset’s <a href="http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE50244">GEO entry (GSE50244)</a> contains raw RNA-seq and sample annotation data. For the purpose of this vignette, we will use data that we pre-processed and made available on the <a href="pages/data.html">data download page</a>.</p>
 <p>After pre-processing, the data were filtered to remove unmapped tags, or tags that mapped to pseudogenes, or known ribosomal/mithocondrial genes (list available in file <code>data/genes_mitrib.txt.gz</code> or via function <code><a href="../reference/getMITRIB.html">getMITRIB()</a></code> provided in the package). Moreover, counts from transcripts that mapped to a same gene were averaged. Sample phenotypic annotations were also processed to define glycemic groups based on <em>hba1c</em> measurements, as per the original publication <span class="citation">(Fadista et al. 2014)</span>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># download GEO dataset from Github</span>
-eset &lt;-<span class="st"> </span><span class="kw">readRDS</span>(<span class="st">'http://shenorrlab.github.io/bseqsc/data/GSE50244.rds'</span>)</code></pre></div>
+eset &lt;-<span class="st"> </span><span class="kw">readRDS</span>(<span class="st">'https://shenorrlab.github.io/bseqsc/data/GSE50244.rds'</span>)</code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># for this analysis we only look at samples with hba1c data</span>
 eset &lt;-<span class="st"> </span><span class="kw">droplevels</span>(eset[, !<span class="kw">is.na</span>(eset$hba1c)])
 eset</code></pre></div>
@@ -160,8 +160,8 @@ eset</code></pre></div>
 <div id="single-cell-data" class="section level3">
 <h3 class="hasAnchor">
 <html><body><a href="#single-cell-data" class="anchor"> </a></body></html>Single cell data</h3>
-<p>We generated single cell RNA-seq data of pancreatic islets from 3 healthy individuals, which provided gene expression profiles for 17434 genes in 7729 cells. The raw counts for these data are available on the <a href="http://shenorrlab.github.io/bseqsc/data.html">data download page</a>, in the form of an <code>ExpressionSet</code>:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">eislet &lt;-<span class="st"> </span><span class="kw">readRDS</span>(<span class="st">'http://shenorrlab.github.io/bseqsc/data/islet-eset.rds'</span>)
+<p>We generated single cell RNA-seq data of pancreatic islets from 3 healthy individuals, which provided gene expression profiles for 17434 genes in 7729 cells. The raw counts for these data are available on the <a href="pages/data.html">data download page</a>, in the form of an <code>ExpressionSet</code>:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">eislet &lt;-<span class="st"> </span><span class="kw">readRDS</span>(<span class="st">'https://shenorrlab.github.io/bseqsc/data/islet-eset.rds'</span>)
 eislet</code></pre></div>
 <p>After identification of the cell types by clustering, we extract marker genes for each cell type, i.e. sets of genes that are mostly highly expressed in each cell type, which can be done in multiple ways, see for example details in <span class="citation">(Baron et al. 2016)</span>.</p>
 <p>The bseqsc package provides the list of selected marker genes for the pancreatic islets, stored in data object <code>pancreasMarkers</code>:</p>
@@ -231,6 +231,7 @@ Estimated proportions can then be compared between the two HBA1C groups, within 
 <p>To fit these models we use the utility function <code>fitEdgeR</code> included in the package:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fitEdgeR</code></pre></div>
 <pre><code>## function(x, formula, coef){
+##   qlibrary('edgeR') # this is required for subsetting happening in glmQLFTest to work
 ##   design &lt;- model.matrix(formula, data = pData(x))
 ##   esetA &lt;- x[, rownames(design)]
 ##   y &lt;- DGEList(counts = exprs(esetA), genes = fData(esetA))
@@ -291,7 +292,7 @@ csfit &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bseqs
 ##  OK
 ## Timing:
 ##    user  system elapsed 
-##  42.508  78.460  33.536</code></pre>
+##  42.208  78.392  31.755</code></pre>
 <p>We observe a strong signal for up-regulation on beta cells (at FDR 0.05), and milder signals of up and down-regulation on acinar and beta cells respectively (at looser FDR 0.25).</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p &lt;-<span class="st"> </span><span class="kw">plot</span>(csfit, <span class="dt">alt =</span> <span class="kw">c</span>(<span class="st">'great'</span>, <span class="st">'less'</span>), <span class="dt">by =</span> <span class="st">'alt'</span>, <span class="dt">xlab =</span> <span class="st">'Number of significant genes'</span>, <span class="dt">ylab =</span> <span class="st">'FDR cutoff'</span>)
 p$data$Cell.type &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">":Hyper"</span>, <span class="st">""</span>, p$data$Cell.type)
@@ -320,46 +321,45 @@ p +<span class="st"> </span><span class="kw">theme_get</span>()</code></pre></di
 ## [11] LC_MEASUREMENT=en_ZA.UTF-8 LC_IDENTIFICATION=C       
 ## 
 ## attached base packages:
-## [1] parallel  stats     graphics  grDevices utils     datasets  methods  
-## [8] base     
+## [1] stats4    parallel  stats     graphics  grDevices utils     datasets 
+## [8] methods   base     
 ## 
 ## other attached packages:
-##  [1] RColorBrewer_1.1-2    plyr_1.8.4            reshape2_1.4.2       
-##  [4] ggplot2_2.2.1         BiocStyle_2.2.1       knitr_1.15.1         
-##  [7] bseqsc_1.0            synchronicity_1.1.9.1 bigmemory_4.5.19     
-## [10] bigmemory.sri_0.1.3   Biobase_2.34.0        BiocGenerics_0.20.0  
-## [13] csSAM_1.4             Rcpp_0.12.9           pkgdown_0.1.0.9000   
-## [16] devtools_1.12.0.9000 
+##  [1] bseqsc_1.0            edgeR_3.16.5          limma_3.30.13        
+##  [4] preprocessCore_1.36.0 e1071_1.6-8           RColorBrewer_1.1-2   
+##  [7] plyr_1.8.4            reshape2_1.4.2        ggplot2_2.2.1        
+## [10] xbioc_0.1.8           AnnotationDbi_1.36.2  IRanges_2.8.2        
+## [13] S4Vectors_0.12.2      BiocStyle_2.2.1       knitr_1.15.1         
+## [16] synchronicity_1.1.9.1 bigmemory_4.5.19      bigmemory.sri_0.1.3  
+## [19] Biobase_2.34.0        BiocGenerics_0.20.0   csSAM_1.4            
+## [22] Rcpp_0.12.10          pkgdown_0.1.0.9000    devtools_1.12.0.9000 
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] doParallel_1.0.10     rprojroot_1.2         prabclus_2.2-6       
-##  [4] highlight_0.4.7       tools_3.3.3           backports_1.0.5      
-##  [7] R6_2.2.0              DBI_0.6               lazyeval_0.2.0       
-## [10] colorspace_1.3-2      trimcluster_0.1-2     nnet_7.3-12          
-## [13] withr_1.0.2           gridExtra_2.2.1       xbioc_0.1.8          
-## [16] preprocessCore_1.36.0 xml2_1.1.1            desc_1.1.0           
-## [19] pkgmaker_0.26.5       labeling_0.3          diptest_0.75-7       
-## [22] scales_0.4.1          DEoptimR_1.0-8        mvtnorm_1.0-6        
-## [25] robustbase_0.92-7     NMF_0.23.4            commonmark_1.2       
-## [28] stringr_1.2.0         digest_0.6.12         rmarkdown_1.3.9004   
-## [31] htmltools_0.3.5       highr_0.6             limma_3.30.12        
-## [34] RSQLite_1.1-2         mclust_5.2.2          dendextend_1.4.0     
-## [37] dplyr_0.5.0           magrittr_1.5          modeltools_0.2-21    
-## [40] Formula_1.2-1         munsell_0.4.3         S4Vectors_0.12.1     
-## [43] abind_1.4-5           viridis_0.3.4         stringi_1.1.2        
-## [46] whisker_0.3-2         yaml_2.1.14           edgeR_3.16.5         
-## [49] MASS_7.3-45           flexmix_2.3-13        pkgbuild_0.0.0.9000  
-## [52] grid_3.3.3            crayon_1.3.2          lattice_0.20-34      
-## [55] locfit_1.5-9.1        magick_0.3            tcltk_3.3.3          
-## [58] fpc_2.1-10            rngtools_1.2.4        codetools_0.2-15     
-## [61] stats4_3.3.3          pkgload_0.0.0.9000    evaluate_0.10        
-## [64] foreach_1.4.3         testthat_1.0.2        gtable_0.2.0         
-## [67] purrr_0.2.2           kernlab_0.9-25        assertthat_0.1       
-## [70] gridBase_0.4-7        openxlsx_4.0.0        xtable_1.8-2         
-## [73] e1071_1.6-8           roxygen2_6.0.1        class_7.3-14         
-## [76] tibble_1.2            iterators_1.0.8       AnnotationDbi_1.36.2 
-## [79] registry_0.3          memoise_1.0.0         IRanges_2.8.1        
-## [82] cluster_2.0.5</code></pre>
+##  [1] doParallel_1.0.10   rprojroot_1.2       prabclus_2.2-6     
+##  [4] highlight_0.4.7.1   tools_3.3.3         backports_1.0.5    
+##  [7] R6_2.2.0            DBI_0.6             lazyeval_0.2.0     
+## [10] colorspace_1.3-2    trimcluster_0.1-2   nnet_7.3-12        
+## [13] withr_1.0.2         gridExtra_2.2.1     xml2_1.1.1         
+## [16] desc_1.1.0          pkgmaker_0.26.5     labeling_0.3       
+## [19] diptest_0.75-7      scales_0.4.1        DEoptimR_1.0-8     
+## [22] mvtnorm_1.0-6       robustbase_0.92-7   NMF_0.23.4         
+## [25] commonmark_1.2      stringr_1.2.0       digest_0.6.12      
+## [28] rmarkdown_1.3.9004  htmltools_0.3.5     highr_0.6          
+## [31] RSQLite_1.1-2       mclust_5.2.3        dendextend_1.4.0   
+## [34] dplyr_0.5.0         magrittr_1.5        modeltools_0.2-21  
+## [37] Formula_1.2-1       munsell_0.4.3       abind_1.4-5        
+## [40] viridis_0.3.4       stringi_1.1.3       whisker_0.3-2      
+## [43] yaml_2.1.14         MASS_7.3-45         flexmix_2.3-13     
+## [46] pkgbuild_0.0.0.9000 grid_3.3.3          crayon_1.3.2       
+## [49] lattice_0.20-34     splines_3.3.3       locfit_1.5-9.1     
+## [52] magick_0.3          tcltk_3.3.3         fpc_2.1-10         
+## [55] rngtools_1.2.4      codetools_0.2-15    pkgload_0.0.0.9000 
+## [58] evaluate_0.10       foreach_1.4.3       testthat_1.0.2     
+## [61] gtable_0.2.0        purrr_0.2.2         kernlab_0.9-25     
+## [64] assertthat_0.1      gridBase_0.4-7      openxlsx_4.0.0     
+## [67] xtable_1.8-2        roxygen2_6.0.1      class_7.3-14       
+## [70] tibble_1.2          iterators_1.0.8     registry_0.3       
+## [73] memoise_1.0.0       cluster_2.0.6</code></pre>
 </div>
 <div id="references" class="section level1 unnumbered">
 <h1 class="hasAnchor">

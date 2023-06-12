@@ -27,7 +27,7 @@ Imports:
 	dplyr,
 	scales, 
 	AnnotationDbi, 
-	NMF,
+	NMF (== 0.26),
 	e1071,
 	parallel,
 	preprocessCore,
@@ -38,8 +38,7 @@ Suggests:
 	rmarkdown
 Remotes:
 	renozao/xbioc,
-	shenorrlab/csSAM,
-	renozao/NMF
+	shenorrlab/csSAM
 VignetteBuilder: knitr
 biocViews: SingleCell 
 RoxygenNote: 6.0.0.9000
